@@ -1,4 +1,4 @@
-// app/dashboard/page.tsx
+
 'use client'
 
 import { useState } from 'react'
@@ -7,6 +7,9 @@ import { useQuery } from '@tanstack/react-query'
 import { useRouter } from 'next/navigation'
 import { ProjectCard } from '@/components/projects/ProjectCard'
 import { CreateProjectModal } from '@/components/projects/CreateProjectModal'
+import { SessionControls } from '@/components/session/SessionControls'
+import { EmployeeTimeline } from '@/components/session/EmployeeTimeline'
+import { ManagerTeamTimeline } from '@/components/session/ManagerTeamTimeline'
 import type { IProject } from '@/types'
 
 export default function DashboardPage() {
@@ -27,7 +30,6 @@ export default function DashboardPage() {
     memberDetails: p.members,
   }))
 
-  // KPI stats
   const totalProjects = projects.length
   const totalTasks = projects.reduce((s, p) => s + (p.taskStats?.total ?? 0), 0)
   const pendingReview = projects.reduce((s, p) => s + (p.taskStats?.pendingReview ?? 0), 0)
@@ -35,23 +37,31 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6 max-w-5xl">
-      {/* Welcome */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="h1-title">Welcome back, {user?.name?.split(' ')[0]} 👋</h1>
-          <p className="text-[13px] mt-1" style={{ color: 'var(--text-secondary)' }}>
-            {isManager ? 'Manage your projects and review tasks' : 'Your assigned projects and tasks'}
-          </p>
+      {/* Welcome + Session Controls */}
+      <div>
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h1 className="h1-title">Welcome back, {user?.name?.split(' ')[0]} 👋</h1>
+            <p className="text-[13px] mt-1" style={{ color: 'var(--text-secondary)' }}>
+              {isManager ? 'Manage your projects and review tasks' : 'Your assigned projects and tasks'}
+            </p>
+          </div>
+          {isManager && (
+            <button onClick={() => setShowCreate(true)} className="btn-primary flex items-center gap-2">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
+              New Project
+            </button>
+          )}
         </div>
-        {isManager && (
-          <button onClick={() => setShowCreate(true)} className="btn-primary flex items-center gap-2">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
-              <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
-            </svg>
-            New Project
-          </button>
-        )}
+
+        {/* Session controls bar */}
+        <SessionControls />
       </div>
+
+      {/* Employee Timeline */}
+      {!isManager && <EmployeeTimeline />}
 
       {/* KPI cards */}
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
@@ -77,6 +87,9 @@ export default function DashboardPage() {
         } />
       </div>
 
+      {/* Manager team timeline */}
+      {isManager && <ManagerTeamTimeline />}
+
       {/* Projects grid */}
       <div>
         <h2 className="h2-title mb-4">Your Projects</h2>
@@ -85,8 +98,6 @@ export default function DashboardPage() {
             {[1, 2, 3].map(i => (
               <div key={i} className="base-card" style={{ height: '180px', animation: 'pulse 1.5s ease infinite' }}>
                 <div className="h-4 rounded" style={{ width: '60%', background: 'var(--surface-hover)' }} />
-                <div className="h-3 rounded mt-3" style={{ width: '90%', background: 'var(--surface-hover)' }} />
-                <div className="h-3 rounded mt-2" style={{ width: '70%', background: 'var(--surface-hover)' }} />
               </div>
             ))}
           </div>
@@ -116,7 +127,6 @@ export default function DashboardPage() {
         )}
       </div>
 
-      {/* Create modal */}
       <CreateProjectModal open={showCreate} onClose={() => setShowCreate(false)} />
     </div>
   )
